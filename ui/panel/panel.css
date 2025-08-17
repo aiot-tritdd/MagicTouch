@@ -1,0 +1,45 @@
+/* This styles the main panel container */
+#magic-touch-wrapper {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 520px;
+    height: 800px;
+    z-index: 99999999;
+    background-color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    display: flex;
+    overflow: hidden; /* Keep this to round the iframe corners */
+    cursor: default; /* Default cursor for the panel */
+}
+
+/* Add a resize handle icon in the corner */
+#magic-touch-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 15px;
+    height: 15px;
+    cursor: se-resize;
+    background: linear-gradient(45deg, transparent 50%, #aaa 50%, #aaa 70%, transparent 70%),
+                linear-gradient(45deg, transparent 60%, #aaa 60%, #aaa 80%, transparent 80%);
+}
+
+
+/* This makes the iframe fill the wrapper completely */
+#magic-touch-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* This styles the lightweight ghost element used during resizing */
+#magic-touch-ghost {
+    position: fixed;
+    z-index: 100000000; /* On top of everything */
+    border: 2px dashed #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+    pointer-events: none; /* The ghost should not capture mouse events */
+}

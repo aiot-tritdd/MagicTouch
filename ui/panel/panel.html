@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magic Touch ✨</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #DAB6C4 0%, #FEFFA5 25%, #5CADA4 50%, #FFA0AC 75%, #13505B 100%);
+        color: #13505B;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+        /* Remove these conflicting properties */
+        /* width: 520px; */
+        /* min-width: 420px; */
+        /* min-height: 600px; */
+        /* max-width: 1200px; */
+        /* max-height: 1000px; */
+        /* resize: both; */
+        /* border-radius: 12px; */
+        /* box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); */
+    }
+
+    .panel-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Remove the resize handle - now handled by wrapper */
+    body::after {
+        display: none;
+    }
+
+    body:hover::after {
+        display: none;
+    }
+
+    .header {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(20px);
+        padding: 20px 25px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        flex-shrink: 0;
+        cursor: move; /* Add this to show it's draggable */
+    }
+
+    .title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #13505B;
+        margin-bottom: 6px;
+        letter-spacing: 1px;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+        color: #13505B;
+        font-weight: 500;
+        opacity: 0.8;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 20px 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .status-card {
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .status-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #DAB6C4, #FEFFA5, #5CADA4, #FFA0AC);
+        border-radius: 16px 16px 0 0;
+    }
+
+    #status {
+        color: #13505B;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .status-icon {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #5CADA4;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    #parseButton {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(15px);
+        color: #13505B;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        padding: 14px 32px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 150px;
+        position: relative;
+    }
+
+    #parseButton:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    #parseButton:disabled {
+        background: rgba(200, 200, 200, 0.3);
+        color: #999;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .result-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        flex-shrink: 0;
+    }
+
+    .result-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #13505B;
+    }
+
+    .result-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #13505B;
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: translateY(-1px);
+    }
+
+    #resultBox {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 20px;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: #13505B;
+        flex: 1;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        resize: none;
+        min-height: 200px; /* Reduced from 400px for better resizing */
+        position: relative;
+    }
+
+    #resultBox::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    #resultBox::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    #resultBox::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+    }
+
+    #resultBox::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+    #resultBox:empty::before {
+        content: '✨ Parsed data will appear here... ✨';
+        color: #5CADA4;
+        font-style: italic;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-weight: 500;
+        pointer-events: none;
+    }
+
+    /* Status states */
+    .status-success .status-icon {
+        background: #5CADA4;
+        box-shadow: 0 0 10px rgba(90, 173, 164, 0.4);
+    }
+
+    .status-error .status-icon {
+        background: #FFA0AC;
+        box-shadow: 0 0 10px rgba(255, 160, 172, 0.4);
+    }
+
+    .status-warning .status-icon {
+        background: #FEFFA5;
+        box-shadow: 0 0 10px rgba(254, 255, 165, 0.4);
+    }
+
+    .status-loading .status-icon {
+        background: #DAB6C4;
+        animation: pulse 2s ease-in-out infinite;
+        box-shadow: 0 0 10px rgba(218, 182, 196, 0.4);
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.1); }
+    }
+
+    /* JSON syntax highlighting */
+    .json-key {
+        color: #13505B;
+        font-weight: 700;
+    }
+
+    .json-string {
+        color: #5CADA4;
+        font-weight: 500;
+    }
+
+    .json-number {
+        color: #FFA0AC;
+        font-weight: 600;
+    }
+
+    .json-boolean {
+        color: #DAB6C4;
+        font-weight: 600;
+    }
+
+    .json-null {
+        color: #13505B;
+        opacity: 0.7;
+        font-style: italic;
+    }
+
+    /* Enhanced responsive design */
+    @media (max-height: 700px) {
+        .main-content {
+            padding: 18px 22px;
+            gap: 15px;
+        }
+        
+        #resultBox {
+            min-height: 150px;
+        }
+        
+        .header {
+            padding: 18px 22px;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .title {
+            font-size: 1.4rem;
+        }
+        
+        .subtitle {
+            font-size: 0.85rem;
+        }
+        
+        #parseButton {
+            padding: 12px 28px;
+            font-size: 0.9rem;
+        }
+        
+        .main-content {
+            padding: 16px 20px;
+        }
+    }
+
+    /* Large screen optimizations */
+    @media (min-width: 800px) {
+        #resultBox {
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        
+        .title {
+            font-size: 1.8rem;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+        }
+    }
+
+    /* Focus states */
+    #parseButton:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 2px;
+    }
+
+    #resultBox:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: -2px;
+    }
+
+    /* Loading state for button */
+    .button-loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(19, 80, 91, 0.3);
+        border-top: 2px solid #13505B;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        transform: translateY(-50%);
+    }
+
+    @keyframes spin {
+        0% { transform: translateY(-50%) rotate(0deg); }
+        100% { transform: translateY(-50%) rotate(360deg); }
+    }
+
+    /* Better scrollbar for main content */
+    .main-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .main-content::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    .main-content::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+    }
+
+    .main-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Size indicator removed */
+    .size-indicator {
+        display: none;
+    }
+          /* Interactive effects */
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+          .header {
+              padding: 25px 30px;
+              margin-bottom: 20px;
+          }
+          
+      }
+                .header-title {
+              font-size: 2.2rem;
+              letter-spacing: 2px;
+          }
+          
+          .header-subtitle {
+              font-size: 1rem;
+          }
+
+      @media (max-width: 480px) {
+          .header {
+              padding: 20px 25px;
+          }
+          
+          .header-title {
+              font-size: 1.8rem;
+              letter-spacing: 1px;
+          }
+          
+          .header-subtitle {
+              font-size: 0.9rem;
+          }
+      }
+      
+
+      /* Interactive effects */
+      .header:active {
+          transform: translateY(-1px) scale(1.01);
+      }
+</style>
+</head>
+<body>
+    <!-- 1. ADD THIS HEADER. This is the drag handle. -->
+  <div class="header">
+      <div class="header-title">Magic Touch Panel</div>
+      <div class="header-subtitle">✨ Where Dreams Meet Technology ✨</div>
+      <div class="header-status">
+          <div class="status-dot"></div>
+          <span>System Active & Ready</span>
+      </div>
+  </div>
+
+    <div class="panel-content">
+
+        <div class="main-content">
+            <div class="status-card">
+                <div class="status-icon"></div>
+                <span id="status">🔮 Initializing scraper detection...</span>
+            </div>
+      
+            <div class="button-container">
+                <button id="parseButton" disabled>
+                    <span>🎨 Parse Page</span>
+                </button>
+            </div>
+      
+            <div class="result-container">
+                <div class="result-header">
+                    <div class="result-title">📊 Parsed Data</div>
+                <div class="result-actions">
+                    <button id="copyBtn" class="action-btn">📋 Copy</button>
+                    <button id="clearBtn" class="action-btn">🗑️ Clear</button>
+                </div>
+                </div>
+                <pre id="resultBox"></pre>
+            </div>
+        </div>
+    </div>
+
+  <script>
+      // Enhanced status management
+      function updateStatus(message, type = 'default') {
+          const statusElement = document.getElementById('status');
+          const statusCard = document.querySelector('.status-card');
+          
+          // Remove existing status classes
+          statusCard.classList.remove('status-success', 'status-error', 'status-warning', 'status-loading');
+          
+          // Add new status class
+          if (type !== 'default') {
+              statusCard.classList.add(`status-${type}`);
+          }
+          
+          statusElement.textContent = message;
+      }
+
+      // Enhanced status updates with visual feedback
+      const originalStatusSetter = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'textContent').set;
+      Object.defineProperty(document.getElementById('status'), 'textContent', {
+          set: function(value) {
+              let type = 'default';
+              
+              if (value.includes('✅') || value.includes('found') || value.includes('success')) {
+                  type = 'success';
+              } else if (value.includes('❌') || value.includes('Error') || value.includes('Cannot')) {
+                  type = 'error';
+              } else if (value.includes('Getting') || value.includes('Checking') || value.includes('Parsing')) {
+                  type = 'loading';
+              } else if (value.includes('not found') || value.includes('Warning')) {
+                  type = 'warning';
+              }
+              
+              updateStatus(value, type);
+          },
+          get: function() {
+              return originalStatusSetter.call(this);
+          }
+      });
+
+      // Enhanced button state management
+      const parseButton = document.getElementById('parseButton');
+      const originalDisabledSetter = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'disabled').set;
+      Object.defineProperty(parseButton, 'disabled', {
+          set: function(value) {
+              originalDisabledSetter.call(this, value);
+              
+              if (value) {
+                  this.innerHTML = '<span>⏳ Processing...</span>';
+                  this.classList.add('button-loading');
+              } else {
+                  this.innerHTML = '<span>🎨 Parse Page</span>';
+                  this.classList.remove('button-loading');
+              }
+          },
+          get: function() {
+              return originalDisabledSetter.call(this);
+          }
+      });
+
+      // Utility functions
+      function copyToClipboard() {
+          const resultBox = document.getElementById('resultBox');
+          const text = resultBox.textContent;
+          
+          if (text.trim()) {
+              navigator.clipboard.writeText(text).then(() => {
+                  updateStatus('📋 Copied to clipboard!', 'success');
+                  setTimeout(() => {
+                      updateStatus('Ready to parse', 'default');
+                  }, 2000);
+              }).catch(() => {
+                  updateStatus('❌ Failed to copy', 'error');
+              });
+          }
+      }
+
+      function clearResults() {
+          document.getElementById('resultBox').textContent = '';
+          updateStatus('Results cleared', 'default');
+      }
+
+      // JSON syntax highlighting
+      function highlightJSON(json) {
+          return json
+              .replace(/("[\w\s\-_]*")\s*:/g, '<span class="json-key">$1</span>:')
+              .replace(/:\s*(".*?")/g, ': <span class="json-string">$1</span>')
+              .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+              .replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>')
+              .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+      }
+
+      // Override the result box setter to add syntax highlighting
+      const resultBox = document.getElementById('resultBox');
+      const originalResultSetter = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'textContent').set;
+      Object.defineProperty(resultBox, 'textContent', {
+          set: function(value) {
+              if (value && value.trim().startsWith('{')) {
+                  try {
+                      const formatted = JSON.stringify(JSON.parse(value), null, 2);
+                      this.innerHTML = highlightJSON(formatted);
+                  } catch (e) {
+                      originalResultSetter.call(this, value);
+                  }
+              } else {
+                  originalResultSetter.call(this, value);
+              }
+          },
+          get: function() {
+              return this.innerText || '';
+          }
+      });
+  </script>
+  <script src="panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Touch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 400px;
+            height: 600px;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #DAB6C4 0%, #FEFFA5 25%, #5CADA4 50%, #FFA0AC 75%, #13505B 100%);
+            color: #13505B;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .popup-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 15px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+
+        .title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .status-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #5CADA4;
+        }
+
+        #parseButton {
+            background: rgba(255, 255, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #13505B;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        #parseButton:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        #parseButton:disabled {
+            background: rgba(200, 200, 200, 0.3);
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .result-title {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #13505B;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        #resultBox {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.75rem;
+            line-height: 1.4;
+            color: #13505B;
+            flex: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            resize: none;
+        }
+
+        #resultBox:empty::before {
+            content: '✨ Parsed data will appear here... ✨';
+            color: #5CADA4;
+            font-style: italic;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        #resultBox::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #resultBox::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        #resultBox::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-content">
+        <div class="header">
+            <div class="title">Magic Touch Panel</div>
+            <div class="subtitle">✨ Where Dreams Meet Technology ✨</div>
+        </div>
+
+        <div class="status-card">
+            <div class="status-icon"></div>
+            <div id="status">Ready to scrape...</div>
+        </div>
+
+        <button id="parseButton" disabled>🔍 Parse Page</button>
+
+        <div class="result-container">
+            <div class="result-header">
+                <div class="result-title">📊 Parsed Data</div>
+                <div class="result-actions">
+                    <button id="copyBtn" class="action-btn">📋 Copy</button>
+                    <button id="clearBtn" class="action-btn">🗑️ Clear</button>
+                </div>
+            </div>
+            <div id="resultBox"></div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
