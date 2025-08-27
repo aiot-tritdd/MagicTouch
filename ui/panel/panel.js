@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         statusEl.textContent = 'Getting tab info...';
-        
+
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         if (!tab?.url?.startsWith('http')) {
             statusEl.textContent = 'Cannot run on this page.';
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         statusEl.textContent = 'Checking for scraper...';
-        
+
         const domain = new URL(tab.url).hostname;
         const scraperKey = domain.replace(/[.\-]/g, '_');
         const scraperFile = `scrapers/${scraperKey}.js`;
@@ -48,26 +48,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const [{ result }] = await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: async () => {
-                        if (typeof Soraya?.default !== 'function') {
-                            throw new Error('Scraper class `Soraya.default` not found.');
-                        }
-                        const scraper = new Soraya.default();
-                        if (typeof scraper.parse !== 'function') {
-                            throw new Error('`parse` method not found on scraper instance.');
-                        }
 
-                        // We assume .parse() is async and might throw an error
                         try {
-                            return await scraper.parse('en');
+                            if (typeof Soraya?.default !== 'function') {
+                                throw new Error('Scraper class `Soraya.default` not found.');
+                            }
+                            const scraper = new Soraya.default();
+                            if (typeof scraper.parse !== 'function') {
+                                throw new Error('`parse` method not found on scraper instance.');
+                            }
+
+                            const parseResult = await scraper.parse('en');
+                            return { success: true, data: parseResult };
+
                         } catch (err) {
                             console.error("Error inside scraper's parse() method:", err);
-                            throw new Error(`Scraper failed: ${err.message}`);
+                            return {
+                                success: false,
+                                error: err.message,
+                                stack: err.stack,
+                                name: err.name
+                            };
                         }
                     },
                 });
 
-                // Display the final result
-                resultBox.textContent = JSON.stringify(result, null, 2);
+                // Check if the result contains an error
+                if (result.success) {
+                    // Display the successful result
+                    resultBox.textContent = JSON.stringify(result.data, null, 2);
+                } else {
+                    // Display the error details
+                    resultBox.textContent = `❌ Error inside scraper's method: ${result.error}`;
+                    resultBox.style.color = 'red';
+                    resultBox.style.fontFamily = 'monospace';
+                }
 
             } catch (e) {
                 resultBox.textContent = `Error: ${e.message}`;
@@ -81,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
-// THIS IS THE ONLY PART THAT CHANGES
+
 document.addEventListener('DOMContentLoaded', () => {
     const header = document.querySelector('.header');
     if (!header) return;
