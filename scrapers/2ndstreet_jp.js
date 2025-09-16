@@ -6846,7 +6846,9 @@ var IsProduct = exports.default = /*#__PURE__*/function (_BaseElement) {
     var _this;
     _classCallCheck(this, IsProduct);
     _this = _callSuper(this, IsProduct, [$]);
-    _this.SELECTORS = ['#goodsDetailWrap #goodsDetail'];
+    _this.SELECTORS = ['#goodsDetailWrap #goodsDetail'
+    // '.goodsDetailAccordionWrap',
+    ];
     return _this;
   }
   _inherits(IsProduct, _BaseElement);

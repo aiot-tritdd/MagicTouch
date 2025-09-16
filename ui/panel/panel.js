@@ -114,17 +114,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resultBox.textContent = JSON.stringify(result.data, null, 2);
                 } else {
                     // Display the error details
-                    const hint = [
+                    const hintTitle = 'Checkout these hints 🥰:';
+                    const hintList = [
                         '1. Check the isProduct.js() method to ensure it correctly identifies product pages.',
                         '2. Ensure there\'s no null, undefined object values. Did you forget to check for them?',
                         '3. Are the DOM selectors correct?',
                         '4. Look at the console logs for more detailed error information.'
                     ];
 
-                    const errorDetails = `❌ Error inside scraper's method: ${result?.error || 'Promise Rejected'}`;
-                    const hintHTML = `<div style="color: #13505B; margin-top: 1em; font-weight: normal;">${hint.join('<br>')}</div>`;
+                    const hintItems = hintList.map(item => `<li style="margin-bottom: 0.5em;">${item}</li>`).join('');
+                    const hintHTML = `<div style="color: #13505B; margin-top: 1em; font-weight: normal;"><p style="margin-bottom: 0.5em;">${hintTitle}</p><ul style="padding-left: 0; list-style-type: none;">${hintItems}</ul></div>`;
 
-                    resultBox.innerHTML = `<div>${errorDetails}</div>${result ? '' : hintHTML}`;
+                    if (result && result.stack) {
+                        const stackTrace = result.stack.split('\n').slice(0, 4).join('<br>');
+                        resultBox.innerHTML = `<div style="margin-top: 1em;">${stackTrace}</div>`;
+                    } else {
+                        resultBox.innerHTML = `<span>❌ Error inside scraper's method: Promise Rejected!</span>${hintHTML}`;
+                    }
+
                     resultBox.style.color = '#DB5A42';
                     resultBox.style.fontFamily = 'monospace';
                     resultBox.style.fontWeight = 'bold';
