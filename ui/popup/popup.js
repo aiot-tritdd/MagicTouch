@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         statusEl.textContent = 'Getting tab info...';
-        
+
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         if (!tab?.url?.startsWith('http')) {
             statusEl.textContent = 'Cannot run on this page.';
@@ -13,24 +13,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         statusEl.textContent = 'Checking for scraper...';
-        
+
         const domain = new URL(tab.url).hostname;
-        const scraperKey = domain.replace(/[.\-]/g, '_');
-        const scraperFile = `scrapers/${scraperKey}.js`;
+        const keyWithWww = domain.replace(/[.\-]/g, '_');
+
+        const domainParts = domain.split('.');
+        const keyWithoutFirstSubString = domainParts.length > 2
+            ? domainParts.slice(1).join('_')
+            : null;
+
 
         console.log('Domain:', domain);
-        console.log('Scraper key:', scraperKey);
-        console.log('Scraper file:', scraperFile);
+        console.log('Possible keys:', { keyWithWww, keyWithoutFirstSubString });
+
+        let scraperKey = null;
+        let scraperFile = null;
+        async function findScraper() {
+            // 1. Try with the full domain key (e.g., www_example_com)
+            const fileWithWww = `scrapers/${keyWithWww}.js`;
+            console.log('Trying scraper file with www:', fileWithWww);
+            try {
+                const response = await fetch(chrome.runtime.getURL(fileWithWww));
+                if (response.ok) {
+                    scraperKey = keyWithWww;
+                    scraperFile = fileWithWww;
+                    return true;
+                }
+            } catch { }
+
+            // 2. If it starts with 'www' and wasn't found, try without it (e.g., example_com)
+            if (keyWithoutFirstSubString) {
+                const fileWithoutFirstSubString = `scrapers/${keyWithoutFirstSubString}.js`;
+                console.log('Trying scraper file without first sub-string:', fileWithoutFirstSubString);
+                try {
+                    const response = await fetch(chrome.runtime.getURL(fileWithoutFirstSubString));
+                    if (response.ok) {
+                        scraperKey = keyWithoutFirstSubString;
+                        scraperFile = fileWithoutFirstSubString;
+                        return true;
+                    }
+                } catch { }
+            }
+
+            return false;
+        }
 
         // Check if the scraper file is packaged with the extension
-        try {
-            const response = await fetch(chrome.runtime.getURL(scraperFile));
-            if (!response.ok) throw new Error();
+        if (await findScraper()) {
             statusEl.textContent = `✅ Scraper found: ${scraperKey}`;
             parseButton.disabled = false;
-        } catch {
-            statusEl.textContent = `❌ Scraper not found: ${scraperKey}`;
-            resultBox.textContent = `Build and copy "${scraperKey}.js" into the 'scrapers' folder, then reload the extension.`;
+            console.log('Using scraper file:', scraperFile);
+        } else {
+            statusEl.textContent = `❌ Scraper not found for: ${domain}`;
+            resultBox.textContent = `Tried to find scrapers matching:\n- ${keyWithWww}.js\n${keyWithoutFirstSubString ? `- ${keyWithoutFirstSubString}.js\n` : ''}\nBuild and copy the correct scraper into the 'scrapers' folder, then reload the extension.`;
             return;
         }
 
@@ -48,26 +83,52 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const [{ result }] = await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: async () => {
-                        if (typeof Soraya?.default !== 'function') {
-                            throw new Error('Scraper class `Soraya.default` not found.');
-                        }
-                        const scraper = new Soraya.default();
-                        if (typeof scraper.parse !== 'function') {
-                            throw new Error('`parse` method not found on scraper instance.');
-                        }
 
-                        // We assume .parse() is async and might throw an error
                         try {
-                            return await scraper.parse('en');
+                            if (typeof Soraya?.default !== 'function') {
+                                throw new Error('Scraper class `Soraya.default` not found.');
+                            }
+                            const scraper = new Soraya.default();
+                            if (typeof scraper.parse !== 'function') {
+                                throw new Error('`parse` method not found on scraper instance.');
+                            }
+
+                            const parseResult = await scraper.parse('en');
+                            return { success: true, data: parseResult };
+
                         } catch (err) {
                             console.error("Error inside scraper's parse() method:", err);
-                            throw new Error(`Scraper failed: ${err.message}`);
+                            return {
+                                success: false,
+                                error: err.message,
+                                stack: err.stack,
+                                name: err.name
+                            };
                         }
                     },
                 });
 
-                // Display the final result
-                resultBox.textContent = JSON.stringify(result, null, 2);
+                // Check if the result contains an error
+                if (result?.success || null) {
+                    // Display the successful result
+                    resultBox.textContent = JSON.stringify(result.data, null, 2);
+                } else {
+                    // Display the error details
+                    const hint = [
+                        '1. Check the isProduct.js() method to ensure it correctly identifies product pages.',
+                        '2. Ensure there\'s no null, undefined object values. Did you forget to check for them?',
+                        '3. Are the DOM selectors correct?',
+                        '4. Look at the console logs for more detailed error information.'
+                    ];
+
+                    const errorDetails = `❌ Error inside scraper's method: ${result?.error || 'Promise Rejected'}`;
+                    const hintHTML = `<div style="color: #13505B; margin-top: 1em; font-weight: normal;">${hint.join('<br>')}</div>`;
+
+                    resultBox.innerHTML = `<div>${errorDetails}</div>${result ? '' : hintHTML}`;
+                    resultBox.style.color = '#DB5A42';
+                    resultBox.style.fontFamily = 'monospace';
+                    resultBox.style.fontWeight = 'bold';
+                }
 
             } catch (e) {
                 resultBox.textContent = `Error: ${e.message}`;
