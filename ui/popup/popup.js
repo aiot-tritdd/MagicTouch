@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const domainParts = domain.split('.');
         const keyWithoutFirstSubString = domainParts.length > 2
-            ? domainParts.slice(1).join('_')
+            ? domainParts.slice(1).map(p => p.replace(/[.\-]/g, '_')).join('_')
             : null;
 
 
@@ -128,8 +128,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (result && result.stack) {
                         const stackTrace = result.stack.split('\n').slice(0, 4).join('<br>');
                         resultBox.innerHTML = `<div style="margin-top: 1em;">${stackTrace}</div>`;
-                    } else if (result && result.error) {
-                        resultBox.innerHTML = `<span>❌ Error inside scraper's method: ${result.error}</span>`;
                     } else {
                         resultBox.innerHTML = `<span>❌ Error inside scraper's method: Promise Rejected!</span>${hintHTML}`;
                     }
@@ -137,7 +135,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resultBox.style.color = '#DB5A42';
                     resultBox.style.fontFamily = 'monospace';
                     resultBox.style.fontWeight = 'bold';
-                    resultBox.style.fontSize = '1.5em';
                 }
 
             } catch (e) {
