@@ -128,6 +128,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (result && result.stack) {
                         const stackTrace = result.stack.split('\n').slice(0, 4).join('<br>');
                         resultBox.innerHTML = `<div style="margin-top: 1em;">${stackTrace}</div>`;
+                    } else if (result && result.error) {    
+                        resultBox.innerHTML = `<span>❌ ${result.error}</span>`;
                     } else {
                         resultBox.innerHTML = `<span>❌ Error inside scraper's method: Promise Rejected!</span>${hintHTML}`;
                     }
